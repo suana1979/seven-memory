@@ -132,7 +132,14 @@ async function configureSettings() {
       storage: {
         rawMemoryPath: path.join(vaultPath, 'raw'),
         processedMemoryPath: path.join(vaultPath, '_wiki'),
-        agentsGuidePath: path.join(vaultPath, '_wiki', 'AGENTS.md')
+        agentsGuidePath: path.join(vaultPath, '_wiki', 'AGENTS.md'),
+        memoryRoot: '.memory'
+      },
+      autoDream: {
+        enabled: true,
+        minHours: 24,
+        minSessions: 5,
+        maxRuntime: 600000
       }
     },
     tools: {
@@ -262,6 +269,30 @@ async function configureSettings() {
     console.log(`✅ 创建 Obsidian 处理记忆目录: ${wikiPath}`);
   }
   
+  // 创建新的记忆目录结构
+  const memoryRoot = '.memory';
+  const memoryDirs = ['user', 'feedback', 'project', 'reference', 'team', 'logs', 'sessions'];
+  
+  if (!fs.existsSync(memoryRoot)) {
+    fs.mkdirSync(memoryRoot, { recursive: true });
+    console.log(`✅ 创建记忆根目录: ${memoryRoot}`);
+  }
+  
+  memoryDirs.forEach(dir => {
+    const dirPath = path.join(memoryRoot, dir);
+    if (!fs.existsSync(dirPath)) {
+      fs.mkdirSync(dirPath, { recursive: true });
+      console.log(`✅ 创建记忆目录: ${dirPath}`);
+    }
+  });
+  
+  // 创建记忆索引文件
+  const memoryIndexPath = path.join(memoryRoot, 'MEMORY.md');
+  if (!fs.existsSync(memoryIndexPath)) {
+    fs.writeFileSync(memoryIndexPath, '# 记忆索引\n\n');
+    console.log(`✅ 创建记忆索引文件: ${memoryIndexPath}`);
+  }
+  
   // 创建 AGENTS.md 文件
   const agentsGuidePath = path.join(vaultPath, '_wiki', 'AGENTS.md');
   if (!fs.existsSync(agentsGuidePath)) {
@@ -282,11 +313,27 @@ async function configureSettings() {
       '6. **梦境** - 深度处理和巩固记忆',
       '7. **跨 Agent 通信** - 实现不同 Agent 之间的信息共享',
       '',
+      '### 记忆类型',
+      '',
+      '1. **User** - 用户画像：记录用户的角色、目标、技能水平和偏好',
+      '2. **Feedback** - 行为反馈：用户对工作方式的纠正或肯定',
+      '3. **Project** - 项目动态：无法从代码或 Git 历史中推导出的项目上下文',
+      '4. **Reference** - 外部引用：指向外部系统中信息的指针',
+      '',
       '### 知识库结构',
       '',
       '- **raw/** - 原始源文件',
       '- **_wiki/** - 处理后的记忆和知识库',
       '- **_wiki/MEMORY.md** - 记忆索引',
+      '- **.memory/** - 新的记忆存储结构',
+      '  - **user/** - 用户画像记忆',
+      '  - **feedback/** - 行为反馈记忆',
+      '  - **project/** - 项目动态记忆',
+      '  - **reference/** - 外部引用记忆',
+      '  - **team/** - 团队共享记忆',
+      '  - **logs/** - 日志文件',
+      '  - **sessions/** - 会话记录',
+      '  - **MEMORY.md** - 记忆索引',
       '',
       '## 使用指南',
       '',
@@ -297,6 +344,13 @@ async function configureSettings() {
       '- `node monitoring.js --run` - 运行系统监控',
       '- `node performance-optimization.js` - 运行性能优化',
       '- `node dream.js` - 手动执行梦境功能',
+      '- `node memory-management.js` - 管理记忆',
+      '',
+      '### AutoDream 记忆整合',
+      '',
+      '- 系统会在后台自动执行记忆整合',
+      '- 默认每 24 小时执行一次，至少积累 5 个会话',
+      '- 整合流程：定向 → 收集近期信号 → 整合 → 修剪与索引',
       '',
       '### OpenClaw 定时任务',
       '',

@@ -271,6 +271,16 @@ config:
 └── _wiki/
     ├── AGENTS.md       # 记忆整理指引
     └── ...              # 整理后的记忆文件
+
+.memory/                # 新的记忆存储结构
+├── user/               # 用户画像记忆
+├── feedback/           # 行为反馈记忆
+├── project/            # 项目动态记忆
+├── reference/          # 外部引用记忆
+├── team/               # 团队共享记忆
+├── logs/               # 日志文件
+├── sessions/           # 会话记录
+└── MEMORY.md           # 记忆索引
 ```
 
 ### 记忆文件格式
