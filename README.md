@@ -1,10 +1,10 @@
 # Seven Memory - 7 层记忆系统技能包
 
-> 基于 Claude Code 7 层记忆架构和 Karpathy 个人知识库思路设计的 OpenClaw 技能集
+> 基于 Claude Code 7 层记忆架构和 Karpathy 个人知识库思路设计的兼容 OpenClaw 和 OpenCode 的技能集
 
 ## 概述
 
-Seven Memory 是一套为 OpenClaw 设计的记忆管理系统，源自 Claude Code 的 7 层记忆架构和 Andrej Karpathy 用大模型和 Obsidian 打造个人本地知识库的思路。该架构的核心设计理念是：**用极低成本的浅层拦截，去规避算力高昂的深层压缩**。
+Seven Memory 是一套为 OpenClaw 和 OpenCode 设计的记忆管理系统，源自 Claude Code 的 7 层记忆架构和 Andrej Karpathy 用大模型和 Obsidian 打造个人本地知识库的思路。该架构的核心设计理念是：**用极低成本的浅层拦截，去规避算力高昂的深层压缩**。
 
 ## 鸣谢
 
