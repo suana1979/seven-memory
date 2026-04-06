@@ -3,12 +3,17 @@
   "version": "1.0.0",
   "description": "7 层记忆系统技能包，基于 Claude Code 7 层记忆架构和 Karpathy 个人知识库思路",
   "main": "index.js",
+  "bin": {
+    "seven-memory": "index.js",
+    "seven-memory-install": "install.js"
+  },
   "scripts": {
     "init": "node init.js",
     "test": "node test-automation.js",
     "monitor": "node monitoring.js --run",
     "optimize": "node performance-optimization.js",
-    "start": "node monitoring.js --service"
+    "start": "node monitoring.js --service",
+    "postinstall": "node install.js"
   },
   "keywords": [
     "memory",
