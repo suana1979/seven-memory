@@ -23,7 +23,13 @@
     "openclaw",
     "obsidian"
   ],
-  "author": "Your Name",
+  "author": "suana1979",
+  "maintainers": [
+    {
+      "name": "suana1979",
+      "email": "suana1979@example.com"
+    }
+  ],
   "license": "MIT",
   "dependencies": {
     "fs": "^0.0.1-security",
