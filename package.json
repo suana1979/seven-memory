@@ -1,0 +1,37 @@
+{
+  "name": "seven-memory",
+  "version": "1.0.0",
+  "description": "7 层记忆系统技能包，基于 Claude Code 7 层记忆架构和 Karpathy 个人知识库思路",
+  "main": "index.js",
+  "scripts": {
+    "init": "node init.js",
+    "test": "node test-automation.js",
+    "monitor": "node monitoring.js --run",
+    "optimize": "node performance-optimization.js",
+    "start": "node monitoring.js --service"
+  },
+  "keywords": [
+    "memory",
+    "ai",
+    "agent",
+    "opencode",
+    "openclaw",
+    "obsidian"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "fs": "^0.0.1-security",
+    "path": "^0.12.7",
+    "os": "^0.1.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.0",
+    "prettier": "^3.2.5"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/suana1979/seven-memory.git"
+  },
+  "homepage": "https://github.com/suana1979/seven-memory#readme"
+}

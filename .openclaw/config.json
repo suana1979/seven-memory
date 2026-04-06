@@ -1,0 +1,45 @@
+{
+  "memory": {
+    "sessionMemory": {
+      "enabled": true,
+      "updateThreshold": 4096,
+      "toolCallThreshold": 10
+    },
+    "autoCompact": {
+      "enabled": true,
+      "threshold": 140000,
+      "retryLimit": 3
+    },
+    "autoMemory": {
+      "enabled": true,
+      "maxLines": 200,
+      "maxSize": 25000
+    },
+    "dream": {
+      "enabled": true,
+      "interval": 3600000,
+      "maxRuntime": 600000
+    },
+    "microCompact": {
+      "idleTimeoutMinutes": 60,
+      "enabled": true
+    },
+    "storage": {
+      "rawMemoryPath": "/Users/suana/Documents/Obsidian Vault/raw",
+      "processedMemoryPath": "/Users/suana/Documents/Obsidian Vault/_wiki",
+      "agentsGuidePath": "/Users/suana/Documents/Obsidian Vault/_wiki/AGENTS.md"
+    }
+  },
+  "tools": {
+    "resultStorage": {
+      "enabled": true,
+      "threshold": 8192,
+      "previewLength": 2048
+    }
+  },
+  "llm": {
+    "provider": "default",
+    "apiKey": "",
+    "model": ""
+  }
+}

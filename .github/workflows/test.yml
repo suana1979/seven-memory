@@ -1,0 +1,40 @@
+name: Test Seven Memory
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 16
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Run tests
+      run: npm test
+
+    - name: Run monitoring check
+      run: npm run monitor
+
+    - name: Run performance optimization
+      run: npm run optimize
+
+    - name: Create test report
+      run: node test-automation.js
+
+    - name: Upload test report
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-report
+        path: test-report-automated.md

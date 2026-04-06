@@ -1,0 +1,81 @@
+# OpenClaw 技能配置文件
+name: seven-memory
+description: 7 层记忆系统技能包，基于 Claude Code 7 层记忆架构和 Karpathy 个人知识库思路
+author: Your Name
+version: 1.0.0
+
+# 定时任务配置
+schedules:
+  # 每天自动执行梦境功能
+  - name: dream
+    cron: "0 2 * * *"
+    command: "node dream.js"
+    description: "每天执行记忆巩固"
+
+# 技能命令
+commands:
+  # 主命令
+  - name: default
+    description: 显示记忆系统信息
+    command: "node index.js"
+  
+  # 初始化命令
+  - name: init
+    description: 初始化记忆目录结构
+    command: "node init.js"
+  
+  # 测试命令
+  - name: test
+    description: 运行自动化测试
+    command: "node test-automation.js"
+  
+  # 监控命令
+  - name: monitor
+    description: 运行系统监控
+    command: "node monitoring.js --run"
+  
+  # 性能优化命令
+  - name: optimize
+    description: 运行性能优化
+    command: "node performance-optimization.js"
+  
+  # 梦境命令
+  - name: dream
+    description: 手动执行梦境功能
+    command: "node dream.js"
+
+# 记忆系统配置
+config:
+  memory:
+    sessionMemory:
+      enabled: true
+      updateThreshold: 4096
+      toolCallThreshold: 10
+    autoCompact:
+      enabled: true
+      threshold: 140000
+      retryLimit: 3
+    autoMemory:
+      enabled: true
+      maxLines: 200
+      maxSize: 25000
+    dream:
+      enabled: true
+      interval: 3600000
+      maxRuntime: 600000
+    microCompact:
+      idleTimeoutMinutes: 60
+      enabled: true
+    storage:
+      rawMemoryPath: "/Users/suana/Documents/Obsidian Vault/raw"
+      processedMemoryPath: "/Users/suana/Documents/Obsidian Vault/_wiki"
+      agentsGuidePath: "/Users/suana/Documents/Obsidian Vault/_wiki/AGENTS.md"
+  tools:
+    resultStorage:
+      enabled: true
+      threshold: 8192
+      previewLength: 2048
+  llm:
+    provider: "default"
+    apiKey: ""
+    model: ""
