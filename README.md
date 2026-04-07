@@ -362,6 +362,12 @@ skill(name="memory-layer-3-session-memory")
 
 # 梦境 - 检查长期记忆
 skill(name="memory-layer-6-dream")
+
+# AutoDream 记忆整合 - 后台记忆整合
+skill(name="auto-dream")
+
+# 记忆管理 - 查看、编辑、删除记忆
+skill(name="memory-management")
 ```
 
 ## 各层详解

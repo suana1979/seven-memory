@@ -27,7 +27,14 @@
     "storage": {
       "rawMemoryPath": "/Users/suana/Documents/Obsidian Vault/raw",
       "processedMemoryPath": "/Users/suana/Documents/Obsidian Vault/_wiki",
-      "agentsGuidePath": "/Users/suana/Documents/Obsidian Vault/_wiki/AGENTS.md"
+      "agentsGuidePath": "/Users/suana/Documents/Obsidian Vault/_wiki/AGENTS.md",
+      "memoryRoot": ".memory"
+    },
+    "autoDream": {
+      "enabled": true,
+      "minHours": 24,
+      "minSessions": 5,
+      "maxRuntime": 600000
     }
   },
   "tools": {

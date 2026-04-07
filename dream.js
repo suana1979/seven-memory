@@ -56,28 +56,28 @@ function processDream() {
   // 读取配置
   const config = readConfig();
   
-  const rawMemoryPath = config.memory?.storage?.rawMemoryPath || path.join(require('os').homedir(), 'Documents', 'Obsidian Vault', 'raw');
-  const processedMemoryPath = config.memory?.storage?.processedMemoryPath || path.join(require('os').homedir(), 'Documents', 'Obsidian Vault', '_wiki');
-  const agentsGuidePath = config.memory?.storage?.agentsGuidePath || path.join(require('os').homedir(), 'Documents', 'Obsidian Vault', '_wiki', 'AGENTS.md');
+  // 使用新的 .memory 目录结构
+  const memoryRoot = config.memory?.storage?.memoryRoot || '.memory';
+  const userMemoryPath = path.join(memoryRoot, 'user');
+  const feedbackMemoryPath = path.join(memoryRoot, 'feedback');
+  const projectMemoryPath = path.join(memoryRoot, 'project');
+  const referenceMemoryPath = path.join(memoryRoot, 'reference');
+  const memoryIndexPath = path.join(memoryRoot, 'MEMORY.md');
   
-  console.log(`原始记忆路径: ${rawMemoryPath}`);
-  console.log(`处理记忆路径: ${processedMemoryPath}`);
-  console.log(`指引文件路径: ${agentsGuidePath}`);
+  console.log(`记忆根目录: ${memoryRoot}`);
+  console.log(`用户记忆路径: ${userMemoryPath}`);
+  console.log(`反馈记忆路径: ${feedbackMemoryPath}`);
+  console.log(`项目记忆路径: ${projectMemoryPath}`);
+  console.log(`引用记忆路径: ${referenceMemoryPath}`);
   
   // 检查目录是否存在
-  if (!fs.existsSync(rawMemoryPath)) {
-    console.log('⚠️ 原始记忆目录不存在');
-    return;
-  }
-  
-  if (!fs.existsSync(processedMemoryPath)) {
-    console.log('⚠️ 处理记忆目录不存在');
+  if (!fs.existsSync(memoryRoot)) {
+    console.log('⚠️ 记忆根目录不存在');
     return;
   }
   
   // 1. 定位：读取 MEMORY.md 了解当前索引
   console.log('\n1. 定位：读取当前索引');
-  const memoryIndexPath = path.join(processedMemoryPath, 'MEMORY.md');
   let memoryIndex = '';
   
   if (fs.existsSync(memoryIndexPath)) {
@@ -85,28 +85,70 @@ function processDream() {
     console.log('✅ 读取索引文件成功');
   } else {
     console.log('⚠️ 索引文件不存在，创建新索引');
-    memoryIndex = '# Memory Index\n\n## Preferences\n\n## Feedback\n\n## Knowledge\n\n## Patterns\n';
+    memoryIndex = '# 记忆索引\n\n';
     fs.writeFileSync(memoryIndexPath, memoryIndex);
   }
   
-  // 2. 收集：审查原始记忆文件
-  console.log('\n2. 收集：审查原始记忆');
-  const rawFiles = fs.readdirSync(rawMemoryPath);
-  console.log(`找到 ${rawFiles.length} 个原始记忆文件`);
-  
+  // 2. 收集：审查所有记忆文件
+  console.log('\n2. 收集：审查所有记忆');
   const memoryFiles = [];
-  rawFiles.forEach(file => {
-    if (file.endsWith('.md')) {
-      const filePath = path.join(rawMemoryPath, file);
-      const content = fs.readFileSync(filePath, 'utf8');
-      memoryFiles.push({ file, content });
-    }
-  });
+  
+  // 收集用户记忆
+  if (fs.existsSync(userMemoryPath)) {
+    const userFiles = fs.readdirSync(userMemoryPath);
+    userFiles.forEach(file => {
+      if (file.endsWith('.md')) {
+        const filePath = path.join(userMemoryPath, file);
+        const content = fs.readFileSync(filePath, 'utf8');
+        memoryFiles.push({ file, content, type: 'user' });
+      }
+    });
+  }
+  
+  // 收集反馈记忆
+  if (fs.existsSync(feedbackMemoryPath)) {
+    const feedbackFiles = fs.readdirSync(feedbackMemoryPath);
+    feedbackFiles.forEach(file => {
+      if (file.endsWith('.md')) {
+        const filePath = path.join(feedbackMemoryPath, file);
+        const content = fs.readFileSync(filePath, 'utf8');
+        memoryFiles.push({ file, content, type: 'feedback' });
+      }
+    });
+  }
+  
+  // 收集项目记忆
+  if (fs.existsSync(projectMemoryPath)) {
+    const projectFiles = fs.readdirSync(projectMemoryPath);
+    projectFiles.forEach(file => {
+      if (file.endsWith('.md')) {
+        const filePath = path.join(projectMemoryPath, file);
+        const content = fs.readFileSync(filePath, 'utf8');
+        memoryFiles.push({ file, content, type: 'project' });
+      }
+    });
+  }
+  
+  // 收集引用记忆
+  if (fs.existsSync(referenceMemoryPath)) {
+    const referenceFiles = fs.readdirSync(referenceMemoryPath);
+    referenceFiles.forEach(file => {
+      if (file.endsWith('.md')) {
+        const filePath = path.join(referenceMemoryPath, file);
+        const content = fs.readFileSync(filePath, 'utf8');
+        memoryFiles.push({ file, content, type: 'reference' });
+      }
+    });
+  }
+  
+  console.log(`找到 ${memoryFiles.length} 个记忆文件`);
   
   // 3. 巩固：处理记忆文件
   console.log('\n3. 巩固：处理记忆');
-  memoryFiles.forEach(({ file, content }) => {
-    console.log(`处理文件: ${file}`);
+  const updatedMemories = [];
+  
+  memoryFiles.forEach(({ file, content, type }) => {
+    console.log(`处理文件: ${file} (${type})`);
     
     // 解析文件内容
     const frontmatterMatch = content.match(/^---[\s\S]*?---/);
@@ -114,42 +156,38 @@ function processDream() {
       const frontmatter = frontmatterMatch[0];
       const body = content.replace(frontmatter, '').trim();
       
-      // 提取记忆类型
-      const typeMatch = frontmatter.match(/type:\s*(\w+)/);
-      const type = typeMatch ? typeMatch[1] : 'knowledge';
-      
       // 提取记忆名称
       const nameMatch = frontmatter.match(/name:\s*(.+)/);
       const name = nameMatch ? nameMatch[1] : file.replace('.md', '');
       
-      // 生成处理后的记忆文件
-      const processedContent = `# ${name}\n\n## Description\n${frontmatter}\n\n## Content\n${body}\n\n## Tags\n- #memory\n- #type:${type}\n- #date:${new Date().toISOString().split('T')[0]}\n`;
+      // 提取记忆描述
+      const descriptionMatch = frontmatter.match(/description:\s*(.+)/);
+      const description = descriptionMatch ? descriptionMatch[1] : 'No description';
       
-      // 保存到处理记忆目录
-      const processedFilePath = path.join(processedMemoryPath, file);
-      fs.writeFileSync(processedFilePath, processedContent);
-      console.log(`✅ 保存处理后的记忆: ${file}`);
+      // 更新记忆文件
+      const updatedContent = `---\nname: ${name}\ndescription: ${description}\ntype: ${type}\ndate: ${new Date().toISOString()}\n---\n\n${body}\n`;
       
-      // 更新索引
-      const indexEntry = `- [[${type}/${name}]] - ${name}\n`;
-      if (!memoryIndex.includes(indexEntry)) {
-        const typeSection = `## ${type.charAt(0).toUpperCase() + type.slice(1)}s`;
-        const sectionIndex = memoryIndex.indexOf(typeSection);
-        if (sectionIndex !== -1) {
-          const nextSectionIndex = memoryIndex.indexOf('##', sectionIndex + 2);
-          if (nextSectionIndex !== -1) {
-            memoryIndex = memoryIndex.slice(0, nextSectionIndex) + indexEntry + memoryIndex.slice(nextSectionIndex);
-          } else {
-            memoryIndex += indexEntry;
-          }
-        }
-      }
+      // 保存更新后的记忆
+      const memoryPath = path.join(memoryRoot, type, file);
+      fs.writeFileSync(memoryPath, updatedContent);
+      console.log(`✅ 更新记忆: ${file}`);
+      
+      // 添加到更新列表
+      updatedMemories.push({ name, description, type, path: memoryPath });
     }
   });
   
-  // 4. 修剪：更新索引
-  console.log('\n4. 修剪：更新索引');
-  fs.writeFileSync(memoryIndexPath, memoryIndex);
+  // 4. 修剪与索引：更新索引
+  console.log('\n4. 修剪与索引：更新索引');
+  
+  // 生成新的索引内容
+  const newIndex = updatedMemories.map(memory => {
+    const relativePath = memory.path.replace(memoryRoot + '/', '');
+    return `- [${memory.name}](${relativePath}) — ${memory.description}`;
+  }).join('\n');
+  
+  // 写入索引文件
+  fs.writeFileSync(memoryIndexPath, newIndex);
   console.log('✅ 更新索引文件成功');
   
   // 检查索引大小
@@ -157,7 +195,7 @@ function processDream() {
   if (indexStats.size > 25000) {
     console.log('⚠️ 索引文件超过 25KB，需要修剪');
     // 简单的修剪逻辑：保留最近的记忆
-    const lines = memoryIndex.split('\n');
+    const lines = newIndex.split('\n');
     const trimmedLines = lines.slice(0, 200); // 保留前 200 行
     const trimmedIndex = trimmedLines.join('\n');
     fs.writeFileSync(memoryIndexPath, trimmedIndex);
@@ -166,6 +204,7 @@ function processDream() {
   
   console.log('\n=== 梦境处理完成 ===');
   console.log(`处理了 ${memoryFiles.length} 个记忆文件`);
+  console.log(`更新了 ${updatedMemories.length} 个记忆`);
   console.log('记忆系统已优化');
 }
 
