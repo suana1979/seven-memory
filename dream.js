@@ -164,8 +164,15 @@ function processDream() {
       const descriptionMatch = frontmatter.match(/description:\s*(.+)/);
       const description = descriptionMatch ? descriptionMatch[1] : 'No description';
       
+      // 提取重要性和访问频率
+      const importanceMatch = frontmatter.match(/importance:\s*(.+)/);
+      const importance = importanceMatch ? importanceMatch[1] : 'medium';
+      
+      const frequencyMatch = frontmatter.match(/frequency:\s*(.+)/);
+      const frequency = frequencyMatch ? frequencyMatch[1] : '1';
+      
       // 更新记忆文件
-      const updatedContent = `---\nname: ${name}\ndescription: ${description}\ntype: ${type}\ndate: ${new Date().toISOString()}\n---\n\n${body}\n`;
+      const updatedContent = `---\nname: ${name}\ndescription: ${description}\ntype: ${type}\ndate: ${new Date().toISOString()}\nimportance: ${importance}\nfrequency: ${frequency}\n---\n\n${body}\n`;
       
       // 保存更新后的记忆
       const memoryPath = path.join(memoryRoot, type, file);
@@ -180,26 +187,23 @@ function processDream() {
   // 4. 修剪与索引：更新索引
   console.log('\n4. 修剪与索引：更新索引');
   
-  // 生成新的索引内容
-  const newIndex = updatedMemories.map(memory => {
-    const relativePath = memory.path.replace(memoryRoot + '/', '');
-    return `- [${memory.name}](${relativePath}) — ${memory.description}`;
-  }).join('\n');
-  
-  // 写入索引文件
-  fs.writeFileSync(memoryIndexPath, newIndex);
+  // 调用 updateIndexes 函数生成新的索引文件
+  const { updateIndexes } = require('./memory-management');
+  updateIndexes(memoryRoot);
   console.log('✅ 更新索引文件成功');
   
-  // 检查索引大小
-  const indexStats = fs.statSync(memoryIndexPath);
+  // 检查主索引大小
+  const mainIndexPath = path.join(memoryRoot, 'MEMORY.md');
+  const indexStats = fs.statSync(mainIndexPath);
   if (indexStats.size > 25000) {
-    console.log('⚠️ 索引文件超过 25KB，需要修剪');
+    console.log('⚠️ 主索引文件超过 25KB，需要修剪');
     // 简单的修剪逻辑：保留最近的记忆
-    const lines = newIndex.split('\n');
+    const mainIndexContent = fs.readFileSync(mainIndexPath, 'utf8');
+    const lines = mainIndexContent.split('\n');
     const trimmedLines = lines.slice(0, 200); // 保留前 200 行
     const trimmedIndex = trimmedLines.join('\n');
-    fs.writeFileSync(memoryIndexPath, trimmedIndex);
-    console.log('✅ 修剪索引文件成功');
+    fs.writeFileSync(mainIndexPath, trimmedIndex);
+    console.log('✅ 修剪主索引文件成功');
   }
   
   console.log('\n=== 梦境处理完成 ===');

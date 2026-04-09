@@ -18,6 +18,8 @@ name: ${name}
 description: ${description}
 type: ${type}
 date: ${new Date().toISOString()}
+importance: ${howToApply ? 'high' : 'medium'}
+frequency: 1
 ---
 
 ${content}
@@ -35,20 +37,69 @@ const MEMORY_DIRS = {
   PROJECT: 'project',
   REFERENCE: 'reference',
   TEAM: 'team',
-  LOGS: 'logs'
+  LOGS: 'logs',
+  INDEX: {
+    MAIN: 'MEMORY.md',
+    FULL: 'index.md',
+    CONCEPTS: 'concepts',
+    SOURCES: 'sources',
+    ENTITIES: 'entities'
+  }
 };
 
-// 索引文件内容模板
-const INDEX_TEMPLATE = (memories) => {
-  return memories.map(memory => {
-    const relativePath = memory.path.replace(MEMORY_DIRS.ROOT + '/', '');
-    return `- [${memory.name}](${relativePath}) — ${memory.description}`;
-  }).join('\n');
+// 主索引文件内容模板 (MEMORY.md, <25KB)
+const MAIN_INDEX_TEMPLATE = (importantMemories, frequentMemories, recentMemories) => {
+  return `# 记忆主索引
+
+## 📌 重要记忆
+${importantMemories.map(memory => {
+  const relativePath = memory.path.replace(MEMORY_DIRS.ROOT + '/', '');
+  return `- [${memory.name}](${relativePath}) — ${memory.description}`;
+}).join('\n')}
+
+## 🔄 高频访问
+${frequentMemories.map(memory => {
+  const relativePath = memory.path.replace(MEMORY_DIRS.ROOT + '/', '');
+  return `- [${memory.name}](${relativePath}) — ${memory.description} (访问频率: ${memory.frequency})`;
+}).join('\n')}
+
+## 📅 最近30天
+${recentMemories.map(memory => {
+  const relativePath = memory.path.replace(MEMORY_DIRS.ROOT + '/', '');
+  return `- [${memory.name}](${relativePath}) — ${memory.description} (${new Date(memory.date).toLocaleDateString()})`;
+}).join('\n')}
+
+---
+
+完整索引请查看 [index.md](index.md)
+`;
+};
+
+// 完整索引文件内容模板 (index.md)
+const FULL_INDEX_TEMPLATE = (concepts, sources, entities) => {
+  return `# 记忆完整索引
+
+## concepts/ - 概念
+${concepts.map(item => {
+  return `- [${item.name}](${item.path})`;
+}).join('\n')}
+
+## sources/ - 来源
+${sources.map(item => {
+  return `- [${item.name}](${item.path})`;
+}).join('\n')}
+
+## entities/ - 实体
+${entities.map(item => {
+  return `- [${item.name}](${item.path})`;
+}).join('\n')}
+`;
 };
 
 module.exports = {
   MEMORY_TYPES,
   MEMORY_TEMPLATE,
   MEMORY_DIRS,
-  INDEX_TEMPLATE
+  MAIN_INDEX_TEMPLATE,
+  FULL_INDEX_TEMPLATE
 };

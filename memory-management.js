@@ -6,7 +6,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { MEMORY_TYPES, MEMORY_DIRS, MEMORY_TEMPLATE } = require('./memory-types');
+const { MEMORY_TYPES, MEMORY_DIRS, MEMORY_TEMPLATE, MAIN_INDEX_TEMPLATE, FULL_INDEX_TEMPLATE } = require('./memory-types');
 
 /**
  * 列出所有记忆
@@ -38,6 +38,8 @@ function listMemories(memoryRoot = MEMORY_DIRS.ROOT) {
             const nameMatch = frontmatter.match(/name:\s*(.+)/);
             const descriptionMatch = frontmatter.match(/description:\s*(.+)/);
             const dateMatch = frontmatter.match(/date:\s*(.+)/);
+            const importanceMatch = frontmatter.match(/importance:\s*(.+)/);
+            const frequencyMatch = frontmatter.match(/frequency:\s*(.+)/);
             
             if (nameMatch && descriptionMatch) {
               memories.push({
@@ -46,6 +48,9 @@ function listMemories(memoryRoot = MEMORY_DIRS.ROOT) {
                 description: descriptionMatch[1].trim(),
                 type: type,
                 date: dateMatch ? dateMatch[1].trim() : null,
+                importance: importanceMatch ? importanceMatch[1].trim() : 'medium',
+                frequency: frequencyMatch ? parseInt(frequencyMatch[1].trim()) : 1,
+                content: fileContent.replace(/---[\s\S]*?---/, '').trim(),
                 path: filePath
               });
             }
@@ -84,9 +89,20 @@ function getMemory(memoryId, memoryRoot = MEMORY_DIRS.ROOT) {
         const nameMatch = frontmatter.match(/name:\s*(.+)/);
         const descriptionMatch = frontmatter.match(/description:\s*(.+)/);
         const dateMatch = frontmatter.match(/date:\s*(.+)/);
+        const importanceMatch = frontmatter.match(/importance:\s*(.+)/);
+        const frequencyMatch = frontmatter.match(/frequency:\s*(.+)/);
         
         if (nameMatch && descriptionMatch) {
           const content = fileContent.replace(/---[\s\S]*?---/, '').trim();
+          
+          // 增加访问频率
+          const frequency = frequencyMatch ? parseInt(frequencyMatch[1].trim()) + 1 : 2;
+          const updatedFrontmatter = frontmatter.replace(/frequency:\s*\d+/, `frequency: ${frequency}`);
+          const updatedContent = fileContent.replace(/---[\s\S]*?---/, `---${updatedFrontmatter}---`);
+          fs.writeFileSync(filePath, updatedContent);
+          
+          // 更新索引
+          updateIndexes(memoryRoot);
           
           return {
             id: memoryId,
@@ -94,6 +110,8 @@ function getMemory(memoryId, memoryRoot = MEMORY_DIRS.ROOT) {
             description: descriptionMatch[1].trim(),
             type: type,
             date: dateMatch ? dateMatch[1].trim() : null,
+            importance: importanceMatch ? importanceMatch[1].trim() : 'medium',
+            frequency: frequency,
             content: content,
             path: filePath
           };
@@ -135,6 +153,9 @@ function createMemory(memory, memoryRoot = MEMORY_DIRS.ROOT) {
   // 写入文件
   fs.writeFileSync(filePath, memoryContent);
   
+  // 更新索引
+  updateIndexes(memoryRoot);
+  
   return memoryId;
 }
 
@@ -172,6 +193,9 @@ function updateMemory(memoryId, updates, memoryRoot = MEMORY_DIRS.ROOT) {
   // 写入文件
   fs.writeFileSync(updatedMemory.path, memoryContent);
   
+  // 更新索引
+  updateIndexes(memoryRoot);
+  
   return true;
 }
 
@@ -187,6 +211,10 @@ function deleteMemory(memoryId, memoryRoot = MEMORY_DIRS.ROOT) {
     const filePath = path.join(memoryRoot, type, `${memoryId}.md`);
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
+      
+      // 更新索引
+      updateIndexes(memoryRoot);
+      
       return true;
     }
   }
@@ -281,7 +309,9 @@ function exportMemories(format = 'json', memoryRoot = MEMORY_DIRS.ROOT) {
       typeMemories.forEach(memory => {
         mdContent += `### ${memory.name}\n`;
         mdContent += `**描述:** ${memory.description}\n`;
-        mdContent += `**日期:** ${memory.date}\n\n`;
+        mdContent += `**日期:** ${memory.date}\n`;
+        mdContent += `**重要性:** ${memory.importance}\n`;
+        mdContent += `**访问频率:** ${memory.frequency}\n\n`;
         mdContent += `${memory.content}\n\n`;
         mdContent += `---\n\n`;
       });
@@ -331,6 +361,56 @@ function importMemories(content, format = 'json', memoryRoot = MEMORY_DIRS.ROOT)
   return importedCount;
 }
 
+/**
+ * 更新索引文件
+ * @param {string} memoryRoot - 记忆根目录
+ */
+function updateIndexes(memoryRoot = MEMORY_DIRS.ROOT) {
+  const memories = listMemories(memoryRoot);
+  
+  // 1. 生成主索引 (MEMORY.md)
+  const importantMemories = memories.filter(memory => memory.importance === 'high');
+  const frequentMemories = [...memories].sort((a, b) => b.frequency - a.frequency).slice(0, 10);
+  
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  const recentMemories = memories.filter(memory => {
+    const memoryDate = new Date(memory.date);
+    return memoryDate > thirtyDaysAgo;
+  });
+  
+  const mainIndexContent = MAIN_INDEX_TEMPLATE(importantMemories, frequentMemories, recentMemories);
+  const mainIndexPath = path.join(memoryRoot, MEMORY_DIRS.INDEX.MAIN);
+  fs.writeFileSync(mainIndexPath, mainIndexContent);
+  
+  // 2. 生成完整索引 (index.md)
+  // 分类记忆到概念、来源和实体
+  const concepts = memories.filter(memory => memory.type === 'project' || memory.type === 'user');
+  const sources = memories.filter(memory => memory.type === 'reference');
+  const entities = memories.filter(memory => memory.type === 'feedback');
+  
+  const fullIndexContent = FULL_INDEX_TEMPLATE(concepts, sources, entities);
+  const fullIndexPath = path.join(memoryRoot, MEMORY_DIRS.INDEX.FULL);
+  fs.writeFileSync(fullIndexPath, fullIndexContent);
+  
+  // 3. 创建概念、来源和实体目录
+  const conceptsDir = path.join(memoryRoot, MEMORY_DIRS.INDEX.CONCEPTS);
+  const sourcesDir = path.join(memoryRoot, MEMORY_DIRS.INDEX.SOURCES);
+  const entitiesDir = path.join(memoryRoot, MEMORY_DIRS.INDEX.ENTITIES);
+  
+  if (!fs.existsSync(conceptsDir)) {
+    fs.mkdirSync(conceptsDir, { recursive: true });
+  }
+  
+  if (!fs.existsSync(sourcesDir)) {
+    fs.mkdirSync(sourcesDir, { recursive: true });
+  }
+  
+  if (!fs.existsSync(entitiesDir)) {
+    fs.mkdirSync(entitiesDir, { recursive: true });
+  }
+}
+
 module.exports = {
   listMemories,
   getMemory,
@@ -341,5 +421,6 @@ module.exports = {
   filterMemoriesByType,
   cleanExpiredMemories,
   exportMemories,
-  importMemories
+  importMemories,
+  updateIndexes
 };
