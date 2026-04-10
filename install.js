@@ -43,6 +43,39 @@ function checkEnvironment() {
     console.log('警告: Node.js 版本建议 18.0.0 或更高');
   }
   
+  // 检查 Git
+  console.log('检查 Git...');
+  try {
+    const { execSync } = require('child_process');
+    const gitVersion = execSync('git --version', { encoding: 'utf8' });
+    console.log(`Git 版本: ${gitVersion.trim()}`);
+  } catch (error) {
+    console.log('⚠️  Git 未安装，某些功能可能无法使用');
+    console.log('建议安装 Git: https://git-scm.com/downloads');
+  }
+  
+  // 检查 OpenClaw
+  console.log('检查 OpenClaw...');
+  try {
+    const { execSync } = require('child_process');
+    const openclawVersion = execSync('openclaw --version', { encoding: 'utf8' });
+    console.log(`OpenClaw 版本: ${openclawVersion.trim()}`);
+  } catch (error) {
+    console.log('⚠️  OpenClaw 未安装，某些功能可能无法使用');
+    console.log('建议安装 OpenClaw: npm install -g openclaw@latest');
+  }
+  
+  // 检查 OpenCode
+  console.log('检查 OpenCode...');
+  try {
+    const { execSync } = require('child_process');
+    const opencodeVersion = execSync('opencode --version', { encoding: 'utf8' });
+    console.log(`OpenCode 版本: ${opencodeVersion.trim()}`);
+  } catch (error) {
+    console.log('⚠️  OpenCode 未安装，某些功能可能无法使用');
+    console.log('建议安装 OpenCode: npm install -g opencode-ai@latest');
+  }
+  
   // 检查目录结构
   console.log('当前目录:', process.cwd());
   
